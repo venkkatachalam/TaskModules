@@ -98,6 +98,80 @@ class UserProfileDialog extends ComponentDialog {
 
     
 
+    async onInvoke(event, cb){
+      let invokeType = (event).name;
+      let invokeValue = (event).value;
+      if (invokeType === undefined) {
+          invokeType = null;
+      }
+      switch (invokeType) {
+          case "task/fetch": {
+              if (invokeValue !== undefined && invokeValue.data.taskModule === "customform") { // for Technical Preview, was invokeValue.taskModule
+                  // Return the specified task module response to the bot
+                  let fetchTemplate = {
+                    "task": {
+                      "type": "continue",
+                      "value": {
+                          "title": "Custom Form",
+                          "height": 510,
+                          "width": 430,
+                          "fallbackUrl": "https://contoso.com/teamsapp/customform",
+                          "url": "https://contoso.com/teamsapp/customform",
+                      },
+                  }
+                }
+                  cb(null, fetchTemplate, 200);
+              };
+              if (invokeValue !== undefined && invokeValue.data.taskModule === "adaptivecard") { // for Technical Preview, was invokeValue.taskModule
+                  let adaptiveCard = {
+                      "type": "AdaptiveCard",
+                      "body": [
+                          {
+                              "type": "TextBlock",
+                              "text": "Here is a ninja cat:"
+                          },
+                          {
+                              "type": "Image",
+                              "url": "http://adaptivecards.io/content/cats/1.png",
+                              "size": "Medium"
+                          }
+                      ],
+                      "version": "1.0"
+                  };
+                  // Return the specified task module response to the bot
+                  let fetchTemplate= {
+                    "task": {
+                      "type": "continue",
+                      "value": {
+                          "title": "Ninja Cat",
+                          "height": "small",
+                          "width": "small",
+                          "card": {
+                              contentType: "application/vnd.microsoft.card.adaptive",
+                              content: adaptiveCard,
+                          }
+                      }
+                    }
+                  }
+                  cb(null, fetchTemplate, 200);
+              };
+              break;
+          }
+          case "task/submit": {
+              if (invokeValue.data !== undefined) {
+                  // It's a valid task module response
+                  let submitResponse= {
+                    "task": {
+                      "type": "message",
+                      "value": "Task complete!",
+                  }
+                }
+                  cb(null, fetchTemplates.submitMessageResponse, 200)
+              }
+          }
+      }
+  }
+
     createHeroCard() {
         
         return CardFactory.adaptiveCard({
