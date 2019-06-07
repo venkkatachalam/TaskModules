@@ -3,6 +3,7 @@
 // import * as builder from "botbuilder";
 // import * as msteams from "botbuilder-teams";
 const { ActivityTypes,CardFactory,AttachmentLayoutTypes } = require('botbuilder');
+var fs = require('fs');
 const { QnAMaker } = require('botbuilder-ai');
 const {
     ChoiceFactory,
@@ -47,8 +48,8 @@ class UserProfileDialog extends ComponentDialog {
 
 
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
-            this.AskorSearchStep.bind(this),
-            this.textStep.bind(this),
+            // this.AskorSearchStep.bind(this),
+            // this.textStep.bind(this),
             // this.textConfirmStep.bind(this),
             this.summaryStep.bind(this)
         ]));
@@ -96,120 +97,14 @@ class UserProfileDialog extends ComponentDialog {
         return await step.prompt(CONFIRM_PROMPT, 'Confirm?', ['yes', 'no']);
     }
 
-    
-
-    async onInvoke(event, cb){
-      let invokeType = (event).name;
-      let invokeValue = (event).value;
-      if (invokeType === undefined) {
-          invokeType = null;
-      }
-      switch (invokeType) {
-          case "task/fetch": {
-              if (invokeValue !== undefined && invokeValue.data.taskModule === "customform") { // for Technical Preview, was invokeValue.taskModule
-                  // Return the specified task module response to the bot
-                  let fetchTemplate = {
-                    "task": {
-                      "type": "continue",
-                      "value": {
-                          "title": "Custom Form",
-                          "height": 510,
-                          "width": 430,
-                          "fallbackUrl": "https://contoso.com/teamsapp/customform",
-                          "url": "https://contoso.com/teamsapp/customform",
-                      },
-                  }
-                }
-                  cb(null, fetchTemplate, 200);
-              };
-              if (invokeValue !== undefined && invokeValue.data.taskModule === "adaptivecard") { // for Technical Preview, was invokeValue.taskModule
-                  let adaptiveCard = {
-                      "type": "AdaptiveCard",
-                      "body": [
-                          {
-                              "type": "TextBlock",
-                              "text": "Here is a ninja cat:"
-                          },
-                          {
-                              "type": "Image",
-                              "url": "http://adaptivecards.io/content/cats/1.png",
-                              "size": "Medium"
-                          }
-                      ],
-                      "version": "1.0"
-                  };
-                  // Return the specified task module response to the bot
-                  let fetchTemplate= {
-                    "task": {
-                      "type": "continue",
-                      "value": {
-                          "title": "Ninja Cat",
-                          "height": "small",
-                          "width": "small",
-                          "card": {
-                              contentType: "application/vnd.microsoft.card.adaptive",
-                              content: adaptiveCard,
-                          }
-                      }
-                    }
-                  }
-                  cb(null, fetchTemplate, 200);
-              };
-              break;
-          }
-          case "task/submit": {
-              if (invokeValue.data !== undefined) {
-                  // It's a valid task module response
-                  let submitResponse= {
-                    "task": {
-                      "type": "message",
-                      "value": "Task complete!",
-                  }
-                }
-                  cb(null, fetchTemplates.submitMessageResponse, 200)
-              }
-          }
-      }
-  }
-
-    createHeroCard() {
+    createAdaCard() {
         
-        return CardFactory.adaptiveCard({
-            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-            "type": "AdaptiveCard",
-            "version": "1.0",
-            "body": [
-              {
-                "type": "TextBlock",
-                "text": "Publish Adaptive Card schema",
-                "weight": "bolder",
-                "size": "medium"
-              },
-              {
-                "type": "TextBlock",
-                "text": "Now that we have defined the main rules and features of the format, we need to produce a schema and publish it to GitHub. The schema will be the starting point of our reference documentation.",
-                "wrap": true
-              },
-            ],
-            
-            "actions": [
-              {
-                  
-                      "type": "Action.Submit",
-                      "id": "btnBuy",
-                      "title": "Buy",
-                      "data": {
-                    
-                        "msteams": {
-                          "type": "task/fetch"
-                        }
-                      }
-                    
-              }
-            ]
-        
-            
-          });
+        var schema = fs.readFileSync(__dirname + '/cards/about.json', 'utf8');
+        var card = {"contentType": "application/vnd.microsoft.card.adaptive"}
+        card.content = JSON.parse(schema)
+        // card.content.body[0].text="hara bara"
+         console.log(card)
+        return (card);
     }
 
     getInternetAttachment() {
@@ -222,25 +117,25 @@ class UserProfileDialog extends ComponentDialog {
     }
 
     async summaryStep(step) {
-        if (step.result) {
-            step.values.Ques = step.result;
-            // Get the current profile object from user state.
-            const userProfile = await this.userProfile.get(step.context, new UserProfile());
+        // if (step.result) {
+        //     step.values.Ques = step.result;
+        //     // Get the current profile object from user state.
+        //     const userProfile = await this.userProfile.get(step.context, new UserProfile());
 
-            userProfile.Qtype = step.values.Qtype;
-            userProfile.Ques = step.values.Ques;
+        //     userProfile.Qtype = step.values.Qtype;
+        //     userProfile.Ques = step.values.Ques;
            
             await step.context.sendActivity(
-            {
-              attachments: [
+                {
+                    attachments: [
         
-                  this.createHeroCard(),
-                  this.createHeroCard()
+                        this.createAdaCard(),
+                        this.createAdaCard()
         
-              ],
-              attachmentLayout: AttachmentLayoutTypes.Carousel
-            });
-        }
+                    ],
+                    attachmentLayout: AttachmentLayoutTypes.Carousel
+                });
+        // }
 
         // WaterfallStep always finishes with the end of the Waterfall or with another dialog, here it is the end.
         return await step.endDialog();

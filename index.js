@@ -61,7 +61,8 @@ const bot = new EchoBot(userState,conversationState,dialog,logger);
 
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
-    adapter.processActivity(req, res, async (context) => {
+    // console.dir(req)
+    adapter.processActivity(req, res, async (context) =>{
         // Route to main dialog.
         // console.log(res);
         await bot.run(context);
